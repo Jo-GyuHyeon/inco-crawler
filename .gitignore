@@ -1,0 +1,19 @@
+
+### Python ###
+# Byte-compiled / optimized / DLL files
+/Lezhin_Crawler/__pycache__/
+/Naver_Cralwer/__pycache__/
+*.py[cod]
+*$py.class
+
+# Installer logs
+pip-log.txt
+.vscode/
+
+# driver log
+.ghostdriver.log
+
+# Static
+/Lezhin_Crawler/Constants.py
+/Naver_Crawler/Constants.py
+/Daum_Crawler/Constants.py
