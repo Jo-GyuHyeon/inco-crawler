@@ -3,6 +3,7 @@
 # Byte-compiled / optimized / DLL files
 /Lezhin_Crawler/__pycache__/
 /Naver_Cralwer/__pycache__/
+/Daum_Cralwer/__pycache__/
 *.py[cod]
 *$py.class
 
