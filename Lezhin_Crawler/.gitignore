@@ -1,0 +1,16 @@
+
+### Python ###
+# Byte-compiled / optimized / DLL files
+/__pycache__/
+*.py[cod]
+*$py.class
+
+# Installer logs
+pip-log.txt
+.vscode/
+
+# driver log
+.ghostdriver.log
+
+# Static
+/Constants.py
