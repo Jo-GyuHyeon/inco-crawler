@@ -1,0 +1,27 @@
+[[source]]
+
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+name = "pypi"
+
+
+[dev-packages]
+
+
+
+[packages]
+
+selenium = "*"
+sqlalchemy = "*"
+azure-mgmt-scheduler = "*"
+schedule = "*"
+pymysql = "*"
+"boto3" = "*"
+boto = "*"
+aws = "*"
+awscli = "*"
+
+
+[requires]
+
+python_version = "3.6"
