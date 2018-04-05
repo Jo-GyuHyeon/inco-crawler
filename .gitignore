@@ -1,0 +1,16 @@
+
+### Python ###
+# Byte-compiled / optimized / DLL files
+/Daum_Cralwer/__pycache__/
+*.py[cod]
+*$py.class
+
+# Installer logs
+pip-log.txt
+.vscode/
+
+# driver log
+.ghostdriver.log
+
+# Static
+/Daum_Crawler/Constants.py
