@@ -82,6 +82,18 @@ def getCrawlList(platform):
 
 def getEpisodeCount(webtoonId):
     return db_session.query(EpisodeTable.webtoonId).filter(EpisodeTable.webtoonId == webtoonId).count()
+    
+def getLastEpisode(webtoonId):
+    #웹툰VO.id로 select * from episode where webtoonid = 웹툰VO.id 를 이용해 lastEpisode 반환받기
+    rows = []
+    for row in db_session.query(EpisodeTable).filter(EpisodeTable.webtoonId == webtoonId).order_by(EpisodeTable.episodeNo.desc()).limit(1):
+        rows.append(row)
+    for list in rows:
+        vo = EpisodeVO(list[0].webtoonId, list[0].episodeId, list[0].episodeName,  list[0].episodeThumbnail_s, list[0].episodeThumbnail_m, list[0].episodeThumbnail_b, list[0].episodeLink, list[0].episodeDate, list[0].charge, list[0].episodeTimestamp)
+        if vo is not None:
+            return vo
+        else:
+            return None
 
 def deleteWebtoon(webtoonId):
     db_session.query(WebtoonTable).filter(WebtoonTable.webtoonId == webtoonId).delete()

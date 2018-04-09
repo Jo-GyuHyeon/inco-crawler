@@ -13,7 +13,7 @@ def daum_initialize():
         crawler.checkDayEntry(i)
     # crawler.roopCrawllist()
     
-#findWebtoon 코드 수정하기
+#getWebToonEpisode 코드 수정하기
 daum_initialize()
 
 

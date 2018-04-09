@@ -67,30 +67,22 @@ class DayTable(Base):
         self.day = WebtoonVO.day
 
 
-class ChargeTable(Base):
-    __tablename__ = 'charge'
-    episodeId = Column(String, primary_key=True)
-    charge = Column(String)
-
-    def __init__(self, EpisodeVO):
-        self.episodeId = EpisodeVO.webtoonId
-        self.charge = EpisodeVO.day
-
-
 class EpisodeTable(Base):
     __tablename__ = 'episode'
+    episodeNo = Column(String, primary_key=True)
     webtoonId = Column(String, primary_key=True)
-    episodeId = Column(String, primary_key=True)
+    episodeId = Column(String)
     episodeName = Column(String)
     episodeThumbnail_s = Column(String)
     episodeThumbnail_m = Column(String)
     episodeThumbnail_b = Column(String)
     episodeLink = Column(String)
-    episodeDate = Column(Date, primary_key=True)
+    episodeDate = Column(Date)
     episodeTimestamp = Column(DateTime(6), server_default=func.now(6))
     charge = Column(String)
 
     def __init__(self, EpisodeVO):
+        self.episodeNo = EpisodeVO.episodeNo
         self.webtoonId = EpisodeVO.webtoonId
         self.episodeId = EpisodeVO.episodeId
         self.episodeName = EpisodeVO.episodeName
@@ -109,7 +101,7 @@ class CrawllistTable(Base):
     lastDate = Column(DateTime)
     lastEpisode = Column(String)
     platform = Column(String)
-    day = Column(String)
+    day = Column(String, primary_key=True)
 
     def __init__(self, webtoonId, webtoonName, lastDate, lastEpisode, platform, day):
         self.webtoonId = webtoonId
