@@ -28,6 +28,17 @@ class Daum_crawler:
 
     def __init__(self):
         driver.get(Constants.TARGET_SITE)
+
+    def test(self):
+        driver.maximize_window()
+        driver.get("http://webtoon.daum.net/webtoon/view/trace2")
+        # time.sleep(3)
+        # driver.execute_script("window.scrollBy(0, document.documentElement.scrollHeight/3)")
+        # driver.find_element_by_css_selector("#episodeList > div.paging_number > span > a:nth-child(7)").click()
+        # time.sleep(4)
+        # driver.execute_script("window.scrollBy(0, document.documentElement.scrollHeight/5)")
+        WebtoonVO = CrawlDAO.getWebtoonVO("Daum","트레이스")
+        self.getWebToonEpisode(WebtoonVO)
     
     def login(self):
         try:
@@ -83,7 +94,11 @@ class Daum_crawler:
             print("i는 뭐다? : %d"%i)
             
             webtoon_selector = "%s > li:nth-child(%d) > a > span" %(selectDayList[selectNum],i)
-            driver.find_element_by_css_selector(webtoon_selector).click()
+            webtoon_element = driver.find_element_by_css_selector(webtoon_selector)
+            driver.execute_script("arguments[0].click();", webtoon_element)
+
+            # driver.execute_script("document.querySelector('%s').click();"%webtoon_selector) 
+
             driver.implicitly_wait(10)
 
             real_webtoonList.append(self.getInWebToon(intergerDay))
@@ -123,19 +138,26 @@ class Daum_crawler:
         flag = 0
         temp_day = WebtoonVO.day.split(" ")
         integerDay = int(temp_day[0])
-        dayList = [None, "1", "2", "3", "4", "5", "6", "7", "8", "9"]
+        day = dayList[integerDay]
+        dayList = [None, "1", "2", "3", "4", "5", "6", "7", "n", "9"]
         selectDayList =[None, "#dayList1","#dayList2","#endList"]
         selectNum = 1
       
-        day = dayList[integerDay]
-
         print("클릭직전 %s"%integerDay)
-        # 기존코드
-        # path = """//*[@id="comic-scheduled__tab--%s"]""" %day
-        # driver.find_element_by_xpath(path).click()
+        #해당웹툰으로 접근합니다.
+        self.selectDay(day)
 
-
-        webtoon_name_list = driver.find_elements_by_css_selector("#comic-scheduled-day-%s > li > a > div.homelist-title > span" %day)
+        if(day == '9'):
+            webtoon_name_list = driver.find_elements_by_css_selector("#endList > li:nth-child(%s) > a > strong" %day)
+        elif (day == '8'):
+            return None
+        else:             
+            wb_name1 = driver.find_elements_by_css_selector("#dayList1 > li > a > strong")
+            wb_name2 = driver.find_elements_by_css_selector("#dayList2 > li > a > strong")
+            webtoon_name_list = wb_name1 + wb_name2
+             
+        driver.implicitly_wait(10)
+        
         print(len(webtoon_name_list))
         print("%s요일에서 찾습니다.(@findeWebtoon)" %day)
 
@@ -145,12 +167,6 @@ class Daum_crawler:
                 flag = 1
                 print("%d번째에서 %s을 찾았다." %(i, webtoon_name_list[i-1].text))
                 driver.find_element_by_css_selector("#comic-scheduled-day-%s > li:nth-child(%d) > a" % (day, i)).click()
-
-                popup = driver.find_elements_by_css_selector("#btn-close-coach")
-
-                #팝업이있는 경우 제거합니다.
-                if len(popup) == 1:
-                    popup[0].click()
 
                 print("real_episodeList를 생성합니다.")
                 real_episodeList = self.getWebToonEpisode(WebtoonVO)
@@ -263,117 +279,93 @@ class Daum_crawler:
     #에피소드를 긁기
     def getWebToonEpisode(self, WebtoonVO):
 
-        print("웹툰의 에피소드를 읽습니다.")
-
-        ep_links = []
         episodeList = []
-        ep_thumbnails = []
-        count = 0
+        isLastEpisode = False
 
-        target_count = CrawlDAO.getEpisodeCount(WebtoonVO.webtoonId)
+        #최신순
+        url=driver.current_url+"#pageNo=17&sort=asc&type="
+        driver.get(url)
 
-        #에피소드이름
-        ep_titles = driver.find_elements_by_css_selector("div.episode-seq > div.episode-title.ellipsis")
+        print(WebtoonVO.webtoonId)
+        print(WebtoonVO.webtoonName)
+        print("웹툰의 에피소드를 읽습니다.")
+        time.sleep(4)
+        driver.execute_script("window.scrollBy(0, document.documentElement.scrollHeight/3)")
 
-        distance = len(ep_titles) - target_count
-        print("distance = %s" %distance)
+        lastEpisode = CrawlDAO.getLastEpisode(WebtoonVO.webtoonId)
 
-        legacy_ep = CrawlDAO.getEpisodeList(WebtoonVO.webtoonId)
-        legacy_epCount = len(legacy_ep)
-        
-        if(distance > 0) :
-            print("기존의 DB의 에피소드 개수와 현재 개수가 달라서 크롤링을 시작합니다.")
-            print("기존 = %d" %target_count + "웹사이트 = %d" %len(ep_titles))
-            print("차이 = %d" %distance)
-
-            #다르면 다삭제
-            #CrawlDAO.deleteEpisode(WebtoonVO.webtoonId)
-
-            #날짜
-            ep_dates = driver.find_elements_by_css_selector("div.free-date")
-
-            # 썸네일
-            ep_thumbnails = driver.find_elements_by_css_selector(" button > div.banner-wrap > div.episode-banner")
-            print(len(ep_thumbnails))
-
-            #유/무료
-            ep_charges = driver.find_elements_by_css_selector("div.episode-price > span")
-
-            print(len(ep_titles))
-            print("유/무료 갯수는 = "+str(len(ep_charges)))
-
-            #에피소드, 날짜 초기화
-            for i in range(target_count+1, len(ep_titles)+1):
-                target_title = ep_titles[i-1]
-                target_date = ep_dates[i-1]
-
-                ep_titles[i-1] = target_title.text
-                print(ep_titles[i-1])
-                ep_dates[i-1] = "20" + target_date.text.replace(".", "-")
-                print(ep_dates[i-1])
-
-
-            # 썸네일 초기화
-            for i in range(target_count+1, len(ep_titles)+1):
-                print('null = %d'%i)
-                thumbnail = ep_thumbnails[i-1]
-                if thumbnail.get_attribute("data-src") is None:
-                    ep_thumbnails[i-1] = thumbnail.get_attribute("style").split('("')[1].split('")')[0]
-                elif thumbnail.get_attribute("style") == "":
-                    ep_thumbnails[i-1] = thumbnail.get_attribute("data-src")
-
-                print(ep_thumbnails[i-1])
-            
-            #유료/무료 초기화
-            for i in range(target_count+1, len(ep_titles)+1):
-
-                if "코인" in ep_charges[i-1].text:
-                    ep_charges[i-1] = True
-                elif "코인" not in ep_charges[i-1].text:
-                    ep_charges[i-1] = False
-
-            print("링크를 정리합니다.")
-                #링크 초기화
-            for i in range(target_count+1, len(ep_titles)+1):
-                driver.find_element_by_css_selector("#comic-episode-list > li:nth-child(%d) > button" %i).click()
-                ep_links.append(driver.current_url)
-                driver.back()
-
-            print(ep_titles[0])
-
-            for i in range(target_count, len(ep_titles)):
-                episodeId = self.util.makeUUID()
-                urlList = ImageDownload.sendEpisodeImg(ImageDownload.download_EpisodeImg(ep_thumbnails[i], WebtoonVO.webtoonId, episodeId))
-                print("@@@@@@@@@@@@@ 주소가즈아@@@@@@@@@@@@@@@@@")
-                print(urlList[0])
-                episodeVO = EpisodeVO(WebtoonVO.webtoonId, episodeId, ep_titles[i], urlList[0], urlList[1], urlList[2], ep_links[i-target_count], ep_dates[i], ep_charges[i], None)
-                episodeList.append(episodeVO)
-
-
-            #유/무료
-            ep_charges = driver.find_elements_by_css_selector("div.episode-price > span")
-            
-            #유무료 변경사항만 체크해서 업데이트합니다.
-            for i in range(0, len(ep_charges)):
-                print('코인 정리중')
-                if "코인" in ep_charges[i-1].text:
-                    ep_charges[i-1] = True
-                elif "코인" not in ep_charges[i-1].text:
-                    ep_charges[i-1] = False
-                    
-            #레거시 에피소드 다불러옴 현재꺼랑 비교함- true, false비교 다른것만 episodeId로 업데이트시킨다. 레거시 길이 기준으로 자른다.
-            for i in range(0, legacy_epCount):
-                if(legacy_ep[i].charge != ep_charges[i]):
-                    print("유무료가 업데이트되었기 때문에 이번 에피소드 %s업데이트 합니다."%legacy_ep[i].episodeName)
-                    CrawlDAO.updateCharge(legacy_ep[i], ep_charges[i])
-
-            return episodeList
-
+        if lastEpisode == None:
+            isLastEpisode = True
+            episodeName = None
         else:
+            episodeName = lastEpisode.episodeName
 
-            print("기존과 실상황 ep 갯수가 같아서 크롤을 하지 않습니다.")
+        while True:
+            time.sleep(3)
+            driver.implicitly_wait(10)
+            #에피소드이름
+            ep_titles = driver.find_elements_by_css_selector("#episodeList > ul > li > a > strong")
+            #날짜
+            ep_dates = driver.find_elements_by_css_selector("#episodeList > ul > li > div > span.txt_date")
+            # 썸네일
+            ep_thumbnails = driver.find_elements_by_css_selector("#episodeList > ul > li > a > img")
+            # 링크
+            ep_links = driver.find_elements_by_css_selector("#episodeList > ul > li > a")
+            
+            driver.implicitly_wait(10)
+            #현재  페이지
+            cur_page = driver.find_element_by_css_selector("#episodeList > div.paging_number > span > em")
+            #다음 페이지
+            next_page = driver.find_element_by_css_selector("#episodeList > div.paging_number > span")
+            #윈도우 페이지 리스트
+            page = next_page.find_elements_by_class_name("link_page")
+            #다음 페이지 버튼
+            try:
+                next_button = driver.find_element_by_css_selector("#episodeList > div.paging_number > span > a.btn_comm.btn_next")
+            except NoSuchElementException:
+                next_button = None
 
-            return []
+            print("타이틀 갯수 : %d "%len(ep_titles))
+            #초기화
+            for i in range(len(ep_titles)):
+                print("%d번째 : "%i)
+                if(episodeName == ep_titles[i].text):
+                    isLastEpisode = True
+                    continue
+
+                if(isLastEpisode == True):
+                    episodeId = self.util.makeUUID()
+                    title = ep_titles[i].text
+                    date = ep_dates[i].text.replace(".", "-")
+                    thumbnail = ep_thumbnails[i].get_attribute("src")
+                    link = ep_links[i-1].get_attribute("href")
+                    #유/무료
+                    ep_charges = driver.find_elements_by_css_selector("#episodeList > ul > li:nth-child(%d) > div > span.txt_price"%(i+1))
+                    charge = 0 if not ep_charges else 1
+                    #urlList = ImageDownload.sendEpisodeImg(ImageDownload.download_EpisodeImg(thumbnail, WebtoonVO.webtoonId, episodeId))
+                    print(title)
+                    print(date)
+                    print(thumbnail)
+                    print(link)
+                    print(charge)
+
+                    episodeVO = EpisodeVO(WebtoonVO.webtoonId, episodeId, title, "urlList[0]", "urlList[1]", "urlList[2]", link, date, charge, None)
+                    episodeList.append(episodeVO)
+
+            index = int(cur_page.text) % 5
+            if(index != 0):        
+                page[index].click()
+                time.sleep(3)
+                driver.execute_script("window.scrollBy(0, document.documentElement.scrollHeight/5)")
+            elif(index ==0):
+                #다음 페이지가 존재 하지 않으면 종료                
+                if(next_button == None):
+                    break
+                #다음 페이지 존재 하면 페이지 전환
+                else:
+                    next_button.click()
+
+        return episodeList
 
     #웹툰 요일 변경확인
     def checkDayEntry(self, day):
@@ -416,10 +408,8 @@ class Daum_crawler:
                             webtoon.day = compare_day
                             CrawlDAO.updateDay(webtoon)
                             if str(webtoon.day) not in str(day) and CrawlDAO.isCrawlExist(webtoon.webtoonId, day) == 0:
-
                                 CrawlDAO.deleteCrawlist(webtoon.webtoonId, day)
                                 CrawlDAO.insertCrawlList(webtoon, day)
-                                
                 else:
                     print("## 요일변동이 감지 되어있지 않습니다.")
                     
@@ -435,8 +425,8 @@ class Daum_crawler:
     def isDayChange(self, WebtoonVO):
         print("날짜가 바뀌었기 때문에 찾아봅시다!!!!")
 
-        dayList = [None, "1", "2", "3", "4", "5", "6", "7", "8", "9"]
-        dayString = [None, "1", "2", "3", "4", "5", "6", "7", "8", "9"]
+        dayList = [None, "1", "2", "3", "4", "5", "6", "7", "n", "9"]
+        dayString = [None, "1", "2", "3", "4", "5", "6", "7", "n", "9"]
         change_day = "";
 
         for i in range(1,9):
@@ -447,27 +437,27 @@ class Daum_crawler:
             self.selectDay(day)
             
             if(i == 9):
-                wb_name = driver.find_elements_by_css_selector("#endList > li:nth-child(%s) > a > strong" %day)
+                webtoon_name_list = driver.find_elements_by_css_selector("#endList > li:nth-child(%s) > a > strong" %day)
             elif (i == 8):
                 break
             else:             
                 wb_name1 = driver.find_elements_by_css_selector("#dayList1 > li > a > strong")
                 wb_name2 = driver.find_elements_by_css_selector("#dayList2 > li > a > strong")
-                wb_name = wb_name1 + wb_name2
+                webtoon_name_list = wb_name1 + wb_name2
              
             driver.implicitly_wait(10)
 
             print("날짜 바뀐것중 현재 %d 요일 찾고 있습니다."%i)
 
-            print("%d 요일 %d 개 웹툰이 있습니다."%(i,len(wb_name)))
+            print("%d 요일 %d 개 웹툰이 있습니다."%(i,len(webtoon_name_list)))
 
             print("%s요일에서 %s를 찾습니다" %(day,WebtoonVO.webtoonName ))
             
             #찾으면 날짜를 추가합니다.
-            for j in range(1, len(wb_name)+1):
-                print(wb_name[j-1].text)
-                if wb_name[j-1].text == WebtoonVO.webtoonName:
-                    print("%d요일 %d번째에서 %s을 찾았다." %(i, j, wb_name[j-1].text))
+            for j in range(1, len(webtoon_name_list)+1):
+                print(webtoon_name_list[j-1].text.replace('성인', ''))
+                if webtoon_name_list[j-1].text.replace('성인', '') == WebtoonVO.webtoonName:
+                    print("%d요일 %d번째에서 %s을 찾았다." %(i, j, webtoon_name_list[j-1].text))
                     print(change_day)
                     print(dayString[i])
 
@@ -479,8 +469,8 @@ class Daum_crawler:
 
         if not change_day:
             print("더이상 서비스 하지 않는 웹툰입니다.");
-            CrawlDAO.isWebtoonExist(self.wb_platform, WebtoonVO.name):
-            CrawlDAO.deleteWebtoon(WebtoonVO.webtoonId);
+            if not CrawlDAO.isWebtoonExist(self.wb_platform, WebtoonVO.name):
+                CrawlDAO.deleteWebtoon(WebtoonVO.webtoonId)
             return "no"
         
         elif (WebtoonVO.day == change_day):
