@@ -9,11 +9,11 @@ crawler.login()
 # crawler.checkDayEntry(1)
 
 def daum_initialize():
-    for i in range(1,10):
-        crawler.checkDayEntry(i)
-    # crawler.roopCrawllist()
+    # for i in range(7,10):
+    #     crawler.checkDayEntry(i)
+    crawler.roopCrawllist()
     
-#getWebToonEpisode 코드 수정하기
+
 daum_initialize()
 
 

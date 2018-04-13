@@ -82,7 +82,6 @@ class EpisodeTable(Base):
     charge = Column(String)
 
     def __init__(self, EpisodeVO):
-        self.episodeNo = EpisodeVO.episodeNo
         self.webtoonId = EpisodeVO.webtoonId
         self.episodeId = EpisodeVO.episodeId
         self.episodeName = EpisodeVO.episodeName

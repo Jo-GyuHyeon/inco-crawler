@@ -89,7 +89,7 @@ def getLastEpisode(webtoonId):
     for row in db_session.query(EpisodeTable).filter(EpisodeTable.webtoonId == webtoonId).order_by(EpisodeTable.episodeNo.desc()).limit(1):
         rows.append(row)
     for list in rows:
-        vo = EpisodeVO(list[0].webtoonId, list[0].episodeId, list[0].episodeName,  list[0].episodeThumbnail_s, list[0].episodeThumbnail_m, list[0].episodeThumbnail_b, list[0].episodeLink, list[0].episodeDate, list[0].charge, list[0].episodeTimestamp)
+        vo = EpisodeVO(list.webtoonId, list.episodeId, list.episodeName,  list.episodeThumbnail_s, list.episodeThumbnail_m, list.episodeThumbnail_b, list.episodeLink, list.episodeDate, list.charge, list.episodeTimestamp)
         if vo is not None:
             return vo
         else:

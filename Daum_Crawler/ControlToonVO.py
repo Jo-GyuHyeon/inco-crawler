@@ -122,7 +122,7 @@ class WebtoonVO():
 
 class EpisodeVO():
 
-    def __init__(self, webtoonId, episodeId, episodeName, episodeThumbnail_s, episodeThumbnail_m, episodeThumbnail_b, episodeLink, episodeDate, charge, episodeTimestamp):
+    def __init__(self, webtoonId, episodeId, episodeName, episodeThumbnail_s, episodeThumbnail_m, episodeThumbnail_b, episodeLink, episodeDate, episodeTimestamp, charge):
         self.__webtoonId = webtoonId
         self.__episodeId = episodeId
         self.__episodeName = episodeName
@@ -133,6 +133,14 @@ class EpisodeVO():
         self.__episodeDate = episodeDate
         self.__episodeTimestamp = episodeTimestamp
         self.__charge = charge
+
+    @property
+    def episodeNo(self):
+        return self.__episodeNo
+
+    @episodeNo.setter
+    def episodeNo(self, episodeNo):
+        self.__episodeNo = episodeNo
 
     @property
     def webtoonId(self):
