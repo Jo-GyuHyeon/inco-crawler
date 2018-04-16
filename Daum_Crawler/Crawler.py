@@ -40,8 +40,8 @@ class Daum_crawler:
 
     def test(self):
         driver.maximize_window()
-        driver.get("http://webtoon.daum.net/webtoon/view/trace2")
-        WebtoonVO = CrawlDAO.getWebtoonVO("Daum","트레이스")
+        driver.get("http://webtoon.daum.net/webtoon/view/perfect")
+        WebtoonVO = CrawlDAO.getWebtoonVO("Daum","퍼펙트 게임")
         self.getWebToonEpisode(WebtoonVO)
     
     def login(self):
@@ -99,8 +99,6 @@ class Daum_crawler:
             webtoon_selector = "%s > li:nth-child(%d) > a > span" %(selectDayList[selectNum],i)
             webtoon_element = driver.find_element_by_css_selector(webtoon_selector)
             driver.execute_script("arguments[0].click();", webtoon_element)
-
-            # driver.execute_script("document.querySelector('%s').click();"%webtoon_selector) 
 
             driver.implicitly_wait(10)
 
@@ -218,25 +216,21 @@ class Daum_crawler:
 
         #제목
         name_selector = "#cSub > div.product_info > div > div > h3"
- 
         #설명
         introduce_selector = """//*[@id="cSub"]/div[1]/div/div/dl/dd[2]"""
-
         #썸네일
         thumbnail_selector = "#cSub > div.product_info > div > img"
-
         #장르
         genre_selector ="#cSub > div.product_info > div > div > dl > dd.txt_genre"
-
         #작가
         writer_selector = "#cSub > div.writer_info > div.inner_writer > dl > dd.txt_writer > a"
 
         mythumbnail = []
         
         name = driver.find_element_by_css_selector(name_selector).text
-        name = re.sub('\n+', " ", name)
+        name = re.sub('\n+', " ", name).strip()
         thumbnail = driver.find_element_by_css_selector(thumbnail_selector).get_attribute("src")
-        genres = driver.find_element_by_css_selector(genre_selector).text
+        genres = driver.find_element_by_css_selector(genre_selector).text.replace(",","")
 
         #작가와 그림이 나누어질 경우
         try:
@@ -248,8 +242,10 @@ class Daum_crawler:
             painter_selector = "#cSub > div.writer_info > div.inner_writer > dl > dd:nth-child(3) > strong > span > a"
             
             writers = driver.find_element_by_css_selector(writer_selector).text
-            painters = driver.find_element_by_css_selector(painter_selector).text
-            writers += " " + painters
+            painter = driver.find_element_by_css_selector(painter_selector).text
+            writers += " " + painter
+
+        writers = writers.replace("/"," ")
 
         print(name)
         print(writers)
@@ -262,25 +258,24 @@ class Daum_crawler:
         except NoSuchElementException:
             pass
 
-        # # 작가 초기화
-        writer = ''
-        for who in writers:
-            writer += who + " "
+        # # # 작가 초기화
+        # writer = ''
+        # for who in writers:
+        #     writer += who + " "
 
-        # # 장르 초기화
-        genre = ''
-        for what in genres:
-            genre += what + " "
+        # # # 장르 초기화
+        # genre = ''
+        # for what in genres:
+        #     genre += what + " "
 
         # #웹툰이 존재하지 않으면 이미지를 다운받습니다.
         if not CrawlDAO.isWebtoonExist(self.wb_platform, name):
             print("%s이 존재하지 않기 때문에 이미지를 다운받습니다.."%name)
             mythumbnail = ImageDownload.sendWebtoonImg(ImageDownload.download_webttoonImg(thumbnail, self.webtoonId))
-            # print(mythumbnail)
 
-            return WebtoonVO(self.wb_platform, day, self.webtoonId, name, writer, mythumbnail[0],mythumbnail[1], mythumbnail[2], introduce, genre, 0, "2010-01-02")
+            return WebtoonVO(self.wb_platform, day, self.webtoonId, name, writers, mythumbnail[0],mythumbnail[1], mythumbnail[2], introduce, genres, 0, "2010-01-02")
 
-        return WebtoonVO(self.wb_platform, day, self.webtoonId, name, writer, '','mythumbnail[1]', 'mythumbnail[2]', introduce, genre, 0, "2010-01-02")
+        return WebtoonVO(self.wb_platform, day, self.webtoonId, name, writers, '','mythumbnail[1]', 'mythumbnail[2]', introduce, genres, 0, "2010-01-02")
 
     #에피소드를 긁기
     def getWebToonEpisode(self, WebtoonVO):
@@ -321,10 +316,8 @@ class Daum_crawler:
             driver.implicitly_wait(10)
             #현재  페이지
             cur_page = driver.find_element_by_css_selector("#episodeList > div.paging_number > span > em")
-            
             #다음 페이지
             next_page = driver.find_element_by_css_selector("#episodeList > div.paging_number > span")
-
             #윈도우 페이지 리스트
             page = next_page.find_elements_by_class_name("link_page")
             #다음 페이지 버튼
@@ -431,9 +424,7 @@ class Daum_crawler:
                             continue
 
                     elif(compare_day == "no"):
-                        if CrawlDAO.isCrawlExist(webtoon.webtoonId, day) == 0:
-                            CrawlDAO.insertCrawlList(webtoon, day)
-                            continue
+                        continue
 
                     #요일이 변동이 있을 때
                     else:

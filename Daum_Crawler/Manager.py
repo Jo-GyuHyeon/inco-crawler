@@ -9,12 +9,13 @@ crawler.login()
 # crawler.checkDayEntry(1)
 
 def daum_initialize():
-    # for i in range(7,10):
-    #     crawler.checkDayEntry(i)
+    for i in range(10,10):
+        crawler.checkDayEntry(i)
     crawler.roopCrawllist()
     
 
 daum_initialize()
+# crawler.test()
 
 
 #크로울리스트가 최초 실행시 모든 데이터를 점검합니다.
