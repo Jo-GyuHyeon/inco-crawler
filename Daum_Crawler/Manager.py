@@ -9,7 +9,7 @@ crawler.login()
 # crawler.checkDayEntry(1)
 
 def daum_initialize():
-    for i in range(10,10):
+    for i in range(1,10):
         crawler.checkDayEntry(i)
     crawler.roopCrawllist()
     

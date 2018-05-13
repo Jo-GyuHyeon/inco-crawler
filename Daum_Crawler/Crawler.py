@@ -13,17 +13,17 @@ import re
 # phantom_path = Constants.PHANTOMJS_DRIVER_PATH
 # driver = webdriver.PhantomJS(phantom_path)
 
-# chrome_path = Constants.CHROMEJS_DRIVER_PATH
-# driver = webdriver.Chrome(chrome_path)
-
-options = webdriver.ChromeOptions()
-options.set_headless(headless=True)
-options.add_argument('window-size=1920x1080')
-options.add_argument("disable-gpu")
-options.add_argument("--log-level=3")
-
 chrome_path = Constants.CHROMEJS_DRIVER_PATH
-driver = webdriver.Chrome(chrome_path, chrome_options=options)
+driver = webdriver.Chrome(chrome_path)
+
+# options = webdriver.ChromeOptions()
+# options.set_headless(headless=True)
+# options.add_argument('window-size=1920x1080')
+# options.add_argument("disable-gpu")
+# options.add_argument("--log-level=3")
+# 
+# chrome_path = Constants.CHROMEJS_DRIVER_PATH
+# driver = webdriver.Chrome(chrome_path, chrome_options=options)
 
 class Daum_crawler:
     day = 0
